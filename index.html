@@ -363,7 +363,7 @@
         
         <!-- Sección de Errores -->
         <div id="errorAlert" class="alert alert-error">
-            ⚠️ No se detectaron todos los datos. Recuerde usar las unidades exactas: "Grados", "Porciento", "Gramos".
+            ⚠️ No se detectaron todos los datos. Recuerde usar las unidades: "Grados", "Porciento", "Gramos".
         </div>
 
         <!-- Sección de Transcripción -->
@@ -467,8 +467,8 @@
     </main>
 
     <footer>
-        <!-- Logo Oficial SENA SVG Optimizado -->
-        <img src="sena.png" alt="" srcset="" width="4%" height="4%">
+       
+        <img src="sena.png" alt="SENA logo" class="sena-logo" style="display:block; margin:0 auto; width:clamp(36px,8vw,120px); height:auto;">
         
         <div class="footer-text">
             <strong>SENA</strong><br>
@@ -527,16 +527,18 @@
             // Limpieza básica
             const cleanText = text.toLowerCase();
 
-            // Expresiones Regulares Estrictas
+            // Expresiones Regulares Mejoradas
+            // Detectan el número seguido de palabras clave O SÍMBOLOS que generan los teclados
             
-            // Temperatura: Busca número seguido simplemente de "grados"
-            const tempRegex = /(\d+[.,]?\d*)\s*(?:grados)/i;
+            // Temperatura: Busca número seguido de "grados", "°", "celsius", "centígrados"
+            const tempRegex = /(\d+[.,]?\d*)\s*(?:grados|°|degrees|celsius|cent[ií]grados)/i;
             
-            // Humedad: Busca número seguido de "porciento", "por ciento" o "%"
-            const humRegex = /(\d+[.,]?\d*)\s*(?:porciento|por\s*ciento|%)/i;
+            // Humedad: Busca número seguido de "%", "porciento", "por ciento"
+            const humRegex = /(\d+[.,]?\d*)\s*(?:%|porciento|por\s*ciento|percent)/i;
             
-            // Peso: Busca número seguido EXCLUSIVAMENTE de "gramos"
-            const weightRegex = /(\d+[.,]?\d*)\s*(?:gramos)/i;
+            // Peso: Busca número seguido de "gramos", "g", "gr"
+            // \b asegura que 'g' no sea parte de una palabra como 'gato' (en este contexto, tras un número, es seguro)
+            const weightRegex = /(\d+[.,]?\d*)\s*(?:gramos|grams|gr\b|g\b)/i;
 
             const tempMatch = cleanText.match(tempRegex);
             const humMatch = cleanText.match(humRegex);
