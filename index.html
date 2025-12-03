@@ -495,31 +495,49 @@
         const errorAlert = document.getElementById('errorAlert');
 
         // Inicialización:
-        // Aseguramos que el input de colmena empiece en 1 al cargar
         hiveInput.value = "1";
 
         // --- Lógica Principal ---
 
         /**
-         * Ejecuta el procesamiento de texto y luego limpia el input
-         * Función vinculada al botón "Procesar y Limpiar"
+         * Función auxiliar para convertir palabras numéricas a dígitos.
+         * Soluciona el problema de "Colmena cinco" -> "Colmena 5"
          */
+        function normalizeTextNumbers(text) {
+            const numbersMap = {
+                'uno': '1', 'una': '1',
+                'dos': '2',
+                'tres': '3',
+                'cuatro': '4',
+                'cinco': '5',
+                'seis': '6',
+                'siete': '7',
+                'ocho': '8',
+                'nueve': '9',
+                'diez': '10',
+                'once': '11', 'doce': '12', 'trece': '13', 'catorce': '14', 'quince': '15',
+                'veinte': '20', 'treinta': '30', 'cuarenta': '40', 'cincuenta': '50'
+            };
+
+            let normalized = text;
+            
+            // Reemplazar palabras completas por números
+            // \b asegura que sea palabra completa (no "tres" en "estres")
+            for (const [word, num] of Object.entries(numbersMap)) {
+                const regex = new RegExp(`\\b${word}\\b`, 'gi');
+                normalized = normalized.replace(regex, num);
+            }
+            return normalized;
+        }
+
         function processAndClear() {
             const text = transcriptionInput.value;
-            
-            // Si está vacío, solo enfocar
             if (!text.trim()) {
                 transcriptionInput.focus();
                 return;
             }
-
-            // 1. Procesar el texto
             processTranscription(text);
-
-            // 2. Limpiar el área de texto (SOLO DESPUÉS DE PROCESAR)
             transcriptionInput.value = '';
-            
-            // 3. Ocultar alertas previas
             errorAlert.style.display = 'none';
         }
 
@@ -527,23 +545,25 @@
          * Procesa el texto dictado y extrae valores usando Regex
          */
         function processTranscription(text) {
-            // Limpieza básica
-            const cleanText = text.toLowerCase();
+            // 1. Limpieza y Normalización (Paso Crítico arreglado)
+            // Primero pasamos a minúsculas, luego convertimos palabras a números
+            let cleanText = text.toLowerCase();
+            cleanText = normalizeTextNumbers(cleanText);
 
-            // Expresiones Regulares Actualizadas
+            // 2. Definición de Regex Robusta
             
-            // Colmena: MEJORADA
-            // Acepta: "Colmena 5", "Colmena #5", "Colmena: 5", "Colmena, 5", "Colmena numero 5"
-            // Se añaden separadores como dos puntos, comas, guiones o espacios
-            const hiveRegex = /colmena\s*(?:n[úu]mero\s*|#\s*)?[\s:.,-]*(\d+)/i;
+            // Colmena: Busca "colmena", seguido opcionalmente de cualquier cosa que NO sea un número (\D*),
+            // y captura el primer número que encuentre después.
+            // Esto atrapa: "colmena 5", "colmena número 5", "colmena: 5", "colmena, la 5"
+            const hiveRegex = /colmena\D*(\d+)/i;
 
-            // Temperatura: Busca número seguido de "grados", "°", "celsius", "centígrados"
+            // Temperatura: Número + variantes de grados
             const tempRegex = /(\d+[.,]?\d*)\s*(?:grados|°|degrees|celsius|cent[ií]grados)/i;
             
-            // Humedad: Busca número seguido de "%", "porciento", "por ciento"
+            // Humedad: Número + variantes de %
             const humRegex = /(\d+[.,]?\d*)\s*(?:%|porciento|por\s*ciento|percent)/i;
             
-            // Peso: Busca número seguido de "kilos", "kg", "kilogramos"
+            // Peso: Número + variantes de kilos
             const weightRegex = /(\d+[.,]?\d*)\s*(?:kilos|kilo|kilogramos|kg\b|k\b)/i;
 
             const hiveMatch = cleanText.match(hiveRegex);
@@ -551,11 +571,11 @@
             const humMatch = cleanText.match(humRegex);
             const weightMatch = cleanText.match(weightRegex);
 
-            // Asignar valores a los inputs (Reemplazando coma por punto para uniformidad)
+            // 3. Asignación de valores
             
-            // Si se dictó colmena, se actualiza el input (sobrescribe el autoincremento temporalmente)
             if (hiveMatch) {
-                hiveInput.value = hiveMatch[1];
+                // ParseInt para asegurar que es un entero limpio (quita ceros a la izq)
+                hiveInput.value = parseInt(hiveMatch[1], 10);
             }
 
             if (tempMatch) tempInput.value = tempMatch[1].replace(',', '.');
@@ -563,20 +583,14 @@
             if (weightMatch) weightInput.value = weightMatch[1].replace(',', '.');
         }
 
-        /**
-         * Valida y guarda el registro en memoria
-         */
         function saveRecord() {
-            // Ocultar alerta previa
             errorAlert.style.display = 'none';
 
-            // Obtener el valor ACTUAL escrito en el input de colmena
             const hiveNum = hiveInput.value.trim();
             const temp = tempInput.value;
             const hum = humInput.value;
             const weight = weightInput.value;
 
-            // Validación: Se requieren al menos un dato numérico válido
             if (!temp && !hum && !weight) {
                 showError();
                 return;
@@ -587,35 +601,27 @@
                 return;
             }
 
-            // Crear objeto de registro
             const newRecord = {
                 id: Date.now(),
                 hive: "Colmena " + hiveNum,
                 temp: temp || '-',
                 hum: hum || '-',
-                weight: weight || '-', // Kilos
-                timestamp: new Date().toLocaleString('es-CO') // Formato local
+                weight: weight || '-', 
+                timestamp: new Date().toLocaleString('es-CO')
             };
 
-            // Guardar en memoria
             records.push(newRecord);
 
-            // Actualizar UI
             renderTable();
-            clearDataInputs(); // Limpiar solo las tarjetas de datos
+            clearDataInputs(); 
             
-            // AUTOINCREMENTAR:
-            // Tomamos el número que se acaba de guardar y le sumamos 1 para la próxima
-            // Así, si el usuario dictó "Colmena 10", el input cambiará a 11 para la próxima.
+            // Autoincremento
             const nextHiveNumber = parseInt(hiveNum) + 1;
             if (!isNaN(nextHiveNumber)) {
                 hiveInput.value = nextHiveNumber;
             }
         }
 
-        /**
-         * Muestra alerta de error
-         */
         function showError() {
             errorAlert.style.display = 'block';
             setTimeout(() => {
@@ -623,9 +629,6 @@
             }, 6000);
         }
 
-        /**
-         * Renderiza la tabla de registros
-         */
         function renderTable() {
             tableBody.innerHTML = '';
 
@@ -636,7 +639,6 @@
                 emptyState.style.display = 'none';
             }
 
-            // Orden descendente (más reciente primero)
             [...records].reverse().forEach(record => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
@@ -650,29 +652,20 @@
             });
         }
 
-        /**
-         * Limpia SOLO los inputs de las tarjetas (Temperatura, Humedad, Peso)
-         * Deja el número de colmena intacto (porque ya fue actualizado por el autoincremento)
-         */
         function clearDataInputs() {
             tempInput.value = '';
             humInput.value = '';
             weightInput.value = '';
         }
 
-        /**
-         * Genera y descarga el archivo CSV
-         */
         function downloadCSV() {
             if (records.length === 0) {
                 alert("No hay datos para descargar.");
                 return;
             }
 
-            // Encabezados CSV
             let csvContent = "Numero de Colmena,Temperatura (C),Humedad (%),Peso (kg),Fecha y Hora\n";
 
-            // Filas de datos
             records.forEach(r => {
                 const row = [
                     r.hive,
