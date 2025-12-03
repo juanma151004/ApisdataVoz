@@ -15,6 +15,7 @@
             --text-sec: #6b7280;
             --detail: #6E5B2D;
             --sena-green: #39a900;
+            --sena-orange: #fc4b08;
             --white: #ffffff;
             --error: #ef4444;
             --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
@@ -328,9 +329,12 @@
             gap: 1rem;
         }
 
-        .sena-logo {
-            width: 120px;
-            height: auto;
+        .sena-logo-container {
+            width: 80px;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .footer-text {
@@ -363,15 +367,16 @@
         
         <!-- Sección de Errores -->
         <div id="errorAlert" class="alert alert-error">
-            ⚠️ No se detectaron todos los datos. Recuerde usar las unidades: "Grados", "Porciento", "Kilos".
+            ⚠️ No se detectaron todos los datos. Verifique haber usado las palabras clave correctas.
         </div>
 
         <!-- Sección de Transcripción -->
         <section>
             <h2 class="section-title">1. Dictado de Voz</h2>
             <div class="alert alert-info">
-                <strong>💡 Obligatorio pronunciar unidades:</strong>
+                <strong>💡 Pautas de dictado:</strong>
                 <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                    <li>Colmena: "<strong>Colmena</strong>" + Número</li>
                     <li>Temp: Número + "<strong>grados</strong>"</li>
                     <li>Humedad: Número + "<strong>porciento</strong>"</li>
                     <li>Peso: Número + "<strong>kilos</strong>"</li>
@@ -380,7 +385,7 @@
             <textarea 
                 id="transcriptionInput" 
                 class="transcription-area" 
-                placeholder="Toque aquí y dicte. Ej: '30 grados, 60 porciento, 4 kilos'..."
+                placeholder="Ej: 'Colmena 5, 16 grados, 56 porciento, 1.6 kilos'..."
                 inputmode="text"
             ></textarea>
             <!-- Botón de acción principal para procesar -->
@@ -397,7 +402,7 @@
             <div class="hive-input-container">
                 <div class="hive-input-label">
                     Número de Colmena
-                    <span class="hive-input-sub">(Autoincremental y Editable)</span>
+                    <span class="hive-input-sub">(Autoincremental / Editable)</span>
                 </div>
                 <input type="number" id="hiveInput" value="1" min="1">
             </div>
@@ -467,6 +472,7 @@
     </main>
 
     <footer>
+        <!-- Logo Oficial SENA (Recreación SVG para single-file) -->
         <!-- Logo Oficial SENA SVG Optimizado -->
         <img src="sena.png" alt="SENA logo" class="sena-logo" style="display:block; margin:0 auto; width:clamp(36px,8vw,120px); height:auto;">
         
@@ -521,15 +527,17 @@
         }
 
         /**
-         * Procesa el texto dictado y extrae valores usando Regex estricto
+         * Procesa el texto dictado y extrae valores usando Regex
          */
         function processTranscription(text) {
             // Limpieza básica
             const cleanText = text.toLowerCase();
 
-            // Expresiones Regulares Mejoradas
-            // Detectan el número seguido de palabras clave O SÍMBOLOS que generan los teclados
+            // Expresiones Regulares
             
+            // Colmena: Busca "colmena" seguido de un número
+            const hiveRegex = /colmena\s*(\d+)/i;
+
             // Temperatura: Busca número seguido de "grados", "°", "celsius", "centígrados"
             const tempRegex = /(\d+[.,]?\d*)\s*(?:grados|°|degrees|celsius|cent[ií]grados)/i;
             
@@ -537,14 +545,20 @@
             const humRegex = /(\d+[.,]?\d*)\s*(?:%|porciento|por\s*ciento|percent)/i;
             
             // Peso: Busca número seguido de "kilos", "kg", "kilogramos"
-            // Se incluyen abreviaturas comunes
             const weightRegex = /(\d+[.,]?\d*)\s*(?:kilos|kilo|kilogramos|kg\b|k\b)/i;
 
+            const hiveMatch = cleanText.match(hiveRegex);
             const tempMatch = cleanText.match(tempRegex);
             const humMatch = cleanText.match(humRegex);
             const weightMatch = cleanText.match(weightRegex);
 
             // Asignar valores a los inputs (Reemplazando coma por punto para uniformidad)
+            
+            // Si se dictó colmena, se actualiza el input (sobrescribe el autoincremento temporalmente)
+            if (hiveMatch) {
+                hiveInput.value = hiveMatch[1];
+            }
+
             if (tempMatch) tempInput.value = tempMatch[1].replace(',', '.');
             if (humMatch) humInput.value = humMatch[1].replace(',', '.');
             if (weightMatch) weightInput.value = weightMatch[1].replace(',', '.');
@@ -558,7 +572,6 @@
             errorAlert.style.display = 'none';
 
             // Obtener el valor ACTUAL escrito en el input de colmena
-            // Esto permite que si el usuario lo editó manualmente, se respete esa edición.
             const hiveNum = hiveInput.value.trim();
             const temp = tempInput.value;
             const hum = humInput.value;
@@ -594,6 +607,7 @@
             
             // AUTOINCREMENTAR:
             // Tomamos el número que se acaba de guardar y le sumamos 1 para la próxima
+            // Así, si el usuario dictó "Colmena 10", el input cambiará a 11 para la próxima.
             const nextHiveNumber = parseInt(hiveNum) + 1;
             if (!isNaN(nextHiveNumber)) {
                 hiveInput.value = nextHiveNumber;
