@@ -363,7 +363,7 @@
         
         <!-- Sección de Errores -->
         <div id="errorAlert" class="alert alert-error">
-            ⚠️ No se detectaron todos los datos. Recuerde usar las unidades: "Grados", "Porciento", "Gramos".
+            ⚠️ No se detectaron todos los datos. Recuerde usar las unidades: "Grados", "Porciento", "Kilos".
         </div>
 
         <!-- Sección de Transcripción -->
@@ -374,13 +374,13 @@
                 <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
                     <li>Temp: Número + "<strong>grados</strong>"</li>
                     <li>Humedad: Número + "<strong>porciento</strong>"</li>
-                    <li>Peso: Número + "<strong>gramos</strong>"</li>
+                    <li>Peso: Número + "<strong>kilos</strong>"</li>
                 </ul>
             </div>
             <textarea 
                 id="transcriptionInput" 
                 class="transcription-area" 
-                placeholder="Toque aquí y dicte. Ej: '30 grados, 60 porciento, 4000 gramos'..."
+                placeholder="Toque aquí y dicte. Ej: '30 grados, 60 porciento, 4 kilos'..."
                 inputmode="text"
             ></textarea>
             <!-- Botón de acción principal para procesar -->
@@ -425,9 +425,9 @@
                 <div class="card">
                     <div>
                         <label>Peso</label>
-                        <div class="unit">g (Gramos)</div>
+                        <div class="unit">kg (Kilogramos)</div>
                     </div>
-                    <input type="number" id="weightInput" placeholder="0" step="1">
+                    <input type="number" id="weightInput" placeholder="0" step="0.1">
                 </div>
             </div>
 
@@ -446,7 +446,7 @@
                             <th># Colmena</th>
                             <th>Temp (°C)</th>
                             <th>Hum (%)</th>
-                            <th>Peso (g)</th>
+                            <th>Peso (kg)</th>
                             <th>Hora</th>
                         </tr>
                     </thead>
@@ -467,7 +467,7 @@
     </main>
 
     <footer>
-       
+        <!-- Logo Oficial SENA SVG Optimizado -->
         <img src="sena.png" alt="SENA logo" class="sena-logo" style="display:block; margin:0 auto; width:clamp(36px,8vw,120px); height:auto;">
         
         <div class="footer-text">
@@ -536,9 +536,9 @@
             // Humedad: Busca número seguido de "%", "porciento", "por ciento"
             const humRegex = /(\d+[.,]?\d*)\s*(?:%|porciento|por\s*ciento|percent)/i;
             
-            // Peso: Busca número seguido de "gramos", "g", "gr"
-            // \b asegura que 'g' no sea parte de una palabra como 'gato' (en este contexto, tras un número, es seguro)
-            const weightRegex = /(\d+[.,]?\d*)\s*(?:gramos|grams|gr\b|g\b)/i;
+            // Peso: Busca número seguido de "kilos", "kg", "kilogramos"
+            // Se incluyen abreviaturas comunes
+            const weightRegex = /(\d+[.,]?\d*)\s*(?:kilos|kilo|kilogramos|kg\b|k\b)/i;
 
             const tempMatch = cleanText.match(tempRegex);
             const humMatch = cleanText.match(humRegex);
@@ -581,7 +581,7 @@
                 hive: "Colmena " + hiveNum,
                 temp: temp || '-',
                 hum: hum || '-',
-                weight: weight || '-', // Gramos
+                weight: weight || '-', // Kilos
                 timestamp: new Date().toLocaleString('es-CO') // Formato local
             };
 
@@ -657,7 +657,7 @@
             }
 
             // Encabezados CSV
-            let csvContent = "Numero de Colmena,Temperatura (C),Humedad (%),Peso (g),Fecha y Hora\n";
+            let csvContent = "Numero de Colmena,Temperatura (C),Humedad (%),Peso (kg),Fecha y Hora\n";
 
             // Filas de datos
             records.forEach(r => {
