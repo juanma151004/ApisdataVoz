@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ApisData - Registro Apícola</title>
+    <style>
+        :root {
+            /* Paleta de Colores Solicitada */
+            --bg-main: #FAF8F2;
+            --bg-sec: #F3E5AB;
+            --accent-1: #DDBB6C;
+            --accent-2: #b39247;
+            --text-main: #1f2937;
+            --text-sec: #6b7280;
+            --detail: #6E5B2D;
+            --sena-green: #39a900;
+            --white: #ffffff;
+            --error: #ef4444;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --radius: 12px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        header {
+            background-color: var(--white);
+            padding: 1rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        header h1 {
+            color: var(--detail);
+            font-size: 1.5rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .bee-icon {
+            font-size: 1.8rem;
+        }
+
+        /* Main Container */
+        main {
+            flex: 1;
+            padding: 1.5rem;
+            max-width: 800px;
+            margin: 0 auto;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        /* Section Styling */
+        section {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .section-title {
+            color: var(--detail);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        /* Inputs */
+        .transcription-area {
+            width: 100%;
+            min-height: 120px;
+            padding: 1rem;
+            border: 2px solid var(--accent-1);
+            border-radius: var(--radius);
+            background-color: var(--white);
+            font-size: 1.1rem;
+            color: var(--text-main);
+            resize: vertical;
+            transition: border-color 0.3s;
+        }
+
+        .transcription-area:focus {
+            outline: none;
+            border-color: var(--detail);
+            box-shadow: 0 0 0 3px rgba(221, 187, 108, 0.3);
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--accent-1);
+            border-radius: var(--radius);
+            font-size: 1rem;
+            background: var(--white);
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--detail);
+        }
+
+        /* Hive Input Specific Styling */
+        .hive-input-container {
+            background-color: var(--bg-sec);
+            padding: 1rem;
+            border-radius: var(--radius);
+            border: 2px solid var(--accent-1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .hive-input-label {
+            font-weight: 700;
+            color: var(--detail);
+            font-size: 1.1rem;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .hive-input-sub {
+            font-size: 0.8rem;
+            font-weight: 400;
+            color: var(--text-sec);
+        }
+
+        #hiveInput {
+            width: 100px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            text-align: center;
+            border: 2px solid var(--detail);
+            color: var(--detail);
+            padding: 0.5rem;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: var(--radius);
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.1s, opacity 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            font-size: 1rem;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn-primary {
+            background-color: var(--detail);
+            color: white;
+            box-shadow: var(--shadow);
+            width: 100%;
+            font-size: 1.1rem;
+            padding: 1rem;
+        }
+
+        .btn-download {
+            background-color: var(--sena-green);
+            color: white;
+            width: 100%;
+            margin-top: 1rem;
+        }
+
+        .btn-process {
+            background-color: var(--accent-2);
+            color: white;
+            border: none;
+            font-size: 1rem;
+            padding: 0.8rem;
+            box-shadow: var(--shadow);
+        }
+
+        /* Cards Grid */
+        .cards-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 1rem;
+        }
+
+        .card {
+            background: var(--white);
+            border-radius: var(--radius);
+            padding: 1rem;
+            box-shadow: var(--shadow);
+            border-bottom: 4px solid var(--accent-1);
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .card label {
+            font-size: 0.85rem;
+            color: var(--text-sec);
+            font-weight: 500;
+        }
+
+        .card input {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--detail);
+            border: none;
+            background: transparent;
+            width: 100%;
+            padding: 0;
+        }
+
+        .card input:focus {
+            border-bottom: 2px solid var(--detail);
+            border-radius: 0;
+        }
+
+        .unit {
+            font-size: 0.8rem;
+            color: var(--text-sec);
+            align-self: flex-end;
+        }
+
+        /* Table */
+        .table-container {
+            overflow-x: auto;
+            background: var(--white);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            margin-top: 1rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        thead {
+            background-color: var(--bg-sec);
+        }
+
+        th {
+            color: var(--detail);
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid #eee;
+            color: var(--text-main);
+        }
+
+        /* Alerts */
+        .alert {
+            padding: 1rem;
+            border-radius: var(--radius);
+            margin-bottom: 1rem;
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .alert-error {
+            background-color: #fee2e2;
+            color: #b91c1c;
+            border: 1px solid #fca5a5;
+        }
+        
+        .alert-info {
+            background-color: var(--bg-sec);
+            color: var(--detail);
+            border: 2px solid var(--accent-1);
+            font-size: 0.9rem;
+            display: block; /* Visible by default */
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Footer */
+        footer {
+            background-color: var(--white);
+            margin-top: auto;
+            padding: 2rem;
+            text-align: center;
+            border-top: 1px solid var(--bg-sec);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .sena-logo {
+            width: 120px;
+            height: auto;
+        }
+
+        .footer-text {
+            color: var(--text-sec);
+            font-size: 0.9rem;
+            line-height: 1.4;
+            font-weight: 500;
+        }
+
+        .footer-text strong {
+            color: var(--detail);
+        }
+
+        /* Responsive utilities */
+        @media (max-width: 600px) {
+            header h1 { font-size: 1.25rem; }
+            .cards-container { grid-template-columns: 1fr; }
+            .card { flex-direction: row; align-items: center; justify-content: space-between; }
+            .card input { text-align: right; width: 50%; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1><span class="bee-icon">🐝</span> ApisData</h1>
+    </header>
+
+    <main>
+        
+        <!-- Sección de Errores -->
+        <div id="errorAlert" class="alert alert-error">
+            ⚠️ No se detectaron todos los datos. Recuerde usar las unidades exactas: "Grados", "Porciento", "Gramos".
+        </div>
+
+        <!-- Sección de Transcripción -->
+        <section>
+            <h2 class="section-title">1. Dictado de Voz</h2>
+            <div class="alert alert-info">
+                <strong>💡 Obligatorio pronunciar unidades:</strong>
+                <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                    <li>Temp: Número + "<strong>grados</strong>"</li>
+                    <li>Humedad: Número + "<strong>porciento</strong>"</li>
+                    <li>Peso: Número + "<strong>gramos</strong>"</li>
+                </ul>
+            </div>
+            <textarea 
+                id="transcriptionInput" 
+                class="transcription-area" 
+                placeholder="Toque aquí y dicte. Ej: '30 grados, 60 porciento, 4000 gramos'..."
+                inputmode="text"
+            ></textarea>
+            <!-- Botón de acción principal para procesar -->
+            <button class="btn btn-process" onclick="processAndClear()">
+                ⚡ Procesar y Limpiar
+            </button>
+        </section>
+
+        <!-- Sección de Edición de Datos -->
+        <section>
+            <h2 class="section-title">2. Datos Detectados</h2>
+            
+            <!-- Input de Colmena Destacado -->
+            <div class="hive-input-container">
+                <div class="hive-input-label">
+                    Número de Colmena
+                    <span class="hive-input-sub">(Autoincremental y Editable)</span>
+                </div>
+                <input type="number" id="hiveInput" value="1" min="1">
+            </div>
+
+            <div class="cards-container">
+                <!-- Tarjeta Temperatura -->
+                <div class="card">
+                    <div>
+                        <label>Temperatura</label>
+                        <div class="unit">°C (Celsius)</div>
+                    </div>
+                    <input type="number" id="tempInput" placeholder="0" step="0.1">
+                </div>
+
+                <!-- Tarjeta Humedad -->
+                <div class="card">
+                    <div>
+                        <label>Humedad Relativa</label>
+                        <div class="unit">% (Porciento)</div>
+                    </div>
+                    <input type="number" id="humInput" placeholder="0" step="0.1">
+                </div>
+
+                <!-- Tarjeta Peso -->
+                <div class="card">
+                    <div>
+                        <label>Peso</label>
+                        <div class="unit">g (Gramos)</div>
+                    </div>
+                    <input type="number" id="weightInput" placeholder="0" step="1">
+                </div>
+            </div>
+
+            <button class="btn btn-primary" onclick="saveRecord()">
+                💾 Guardar Registro
+            </button>
+        </section>
+
+        <!-- Sección de Registros -->
+        <section>
+            <h2 class="section-title">3. Historial de Registros</h2>
+            <div class="table-container">
+                <table id="dataTable">
+                    <thead>
+                        <tr>
+                            <th># Colmena</th>
+                            <th>Temp (°C)</th>
+                            <th>Hum (%)</th>
+                            <th>Peso (g)</th>
+                            <th>Hora</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Filas generadas por JS -->
+                    </tbody>
+                </table>
+                <div id="emptyState" style="padding: 2rem; text-align: center; color: var(--text-sec);">
+                    No hay registros aún.
+                </div>
+            </div>
+
+            <button class="btn btn-download" onclick="downloadCSV()">
+                📥 Descargar .CSV
+            </button>
+        </section>
+
+    </main>
+
+    <footer>
+        <!-- Logo Oficial SENA SVG Optimizado -->
+        <img src="sena.png" alt="" srcset="" width="4%" height="4%">
+        
+        <div class="footer-text">
+            <strong>SENA</strong><br>
+            Tecnoparque Rural<br>
+            Nodo Quindío
+        </div>
+    </footer>
+
+    <script>
+        // --- Estado de la Aplicación ---
+        let records = [];
+
+        // --- Referencias DOM ---
+        const transcriptionInput = document.getElementById('transcriptionInput');
+        const tempInput = document.getElementById('tempInput');
+        const humInput = document.getElementById('humInput');
+        const weightInput = document.getElementById('weightInput');
+        const hiveInput = document.getElementById('hiveInput');
+        const tableBody = document.querySelector('#dataTable tbody');
+        const emptyState = document.getElementById('emptyState');
+        const errorAlert = document.getElementById('errorAlert');
+
+        // Inicialización:
+        // Aseguramos que el input de colmena empiece en 1 al cargar
+        hiveInput.value = "1";
+
+        // --- Lógica Principal ---
+
+        /**
+         * Ejecuta el procesamiento de texto y luego limpia el input
+         * Función vinculada al botón "Procesar y Limpiar"
+         */
+        function processAndClear() {
+            const text = transcriptionInput.value;
+            
+            // Si está vacío, solo enfocar
+            if (!text.trim()) {
+                transcriptionInput.focus();
+                return;
+            }
+
+            // 1. Procesar el texto
+            processTranscription(text);
+
+            // 2. Limpiar el área de texto (SOLO DESPUÉS DE PROCESAR)
+            transcriptionInput.value = '';
+            
+            // 3. Ocultar alertas previas
+            errorAlert.style.display = 'none';
+        }
+
+        /**
+         * Procesa el texto dictado y extrae valores usando Regex estricto
+         */
+        function processTranscription(text) {
+            // Limpieza básica
+            const cleanText = text.toLowerCase();
+
+            // Expresiones Regulares Estrictas
+            
+            // Temperatura: Busca número seguido simplemente de "grados"
+            const tempRegex = /(\d+[.,]?\d*)\s*(?:grados)/i;
+            
+            // Humedad: Busca número seguido de "porciento", "por ciento" o "%"
+            const humRegex = /(\d+[.,]?\d*)\s*(?:porciento|por\s*ciento|%)/i;
+            
+            // Peso: Busca número seguido EXCLUSIVAMENTE de "gramos"
+            const weightRegex = /(\d+[.,]?\d*)\s*(?:gramos)/i;
+
+            const tempMatch = cleanText.match(tempRegex);
+            const humMatch = cleanText.match(humRegex);
+            const weightMatch = cleanText.match(weightRegex);
+
+            // Asignar valores a los inputs (Reemplazando coma por punto para uniformidad)
+            if (tempMatch) tempInput.value = tempMatch[1].replace(',', '.');
+            if (humMatch) humInput.value = humMatch[1].replace(',', '.');
+            if (weightMatch) weightInput.value = weightMatch[1].replace(',', '.');
+        }
+
+        /**
+         * Valida y guarda el registro en memoria
+         */
+        function saveRecord() {
+            // Ocultar alerta previa
+            errorAlert.style.display = 'none';
+
+            // Obtener el valor ACTUAL escrito en el input de colmena
+            // Esto permite que si el usuario lo editó manualmente, se respete esa edición.
+            const hiveNum = hiveInput.value.trim();
+            const temp = tempInput.value;
+            const hum = humInput.value;
+            const weight = weightInput.value;
+
+            // Validación: Se requieren al menos un dato numérico válido
+            if (!temp && !hum && !weight) {
+                showError();
+                return;
+            }
+            
+            if (!hiveNum) {
+                alert("Por favor ingrese un número de colmena.");
+                return;
+            }
+
+            // Crear objeto de registro
+            const newRecord = {
+                id: Date.now(),
+                hive: "Colmena " + hiveNum,
+                temp: temp || '-',
+                hum: hum || '-',
+                weight: weight || '-', // Gramos
+                timestamp: new Date().toLocaleString('es-CO') // Formato local
+            };
+
+            // Guardar en memoria
+            records.push(newRecord);
+
+            // Actualizar UI
+            renderTable();
+            clearDataInputs(); // Limpiar solo las tarjetas de datos
+            
+            // AUTOINCREMENTAR:
+            // Tomamos el número que se acaba de guardar y le sumamos 1 para la próxima
+            const nextHiveNumber = parseInt(hiveNum) + 1;
+            if (!isNaN(nextHiveNumber)) {
+                hiveInput.value = nextHiveNumber;
+            }
+        }
+
+        /**
+         * Muestra alerta de error
+         */
+        function showError() {
+            errorAlert.style.display = 'block';
+            setTimeout(() => {
+                errorAlert.style.display = 'none';
+            }, 6000);
+        }
+
+        /**
+         * Renderiza la tabla de registros
+         */
+        function renderTable() {
+            tableBody.innerHTML = '';
+
+            if (records.length === 0) {
+                emptyState.style.display = 'block';
+                return;
+            } else {
+                emptyState.style.display = 'none';
+            }
+
+            // Orden descendente (más reciente primero)
+            [...records].reverse().forEach(record => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td style="font-weight:600; color: var(--detail);">${record.hive}</td>
+                    <td>${record.temp}</td>
+                    <td>${record.hum}</td>
+                    <td>${record.weight}</td>
+                    <td style="color: var(--text-sec); font-size: 0.8rem;">${record.timestamp}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        /**
+         * Limpia SOLO los inputs de las tarjetas (Temperatura, Humedad, Peso)
+         * Deja el número de colmena intacto (porque ya fue actualizado por el autoincremento)
+         */
+        function clearDataInputs() {
+            tempInput.value = '';
+            humInput.value = '';
+            weightInput.value = '';
+        }
+
+        /**
+         * Genera y descarga el archivo CSV
+         */
+        function downloadCSV() {
+            if (records.length === 0) {
+                alert("No hay datos para descargar.");
+                return;
+            }
+
+            // Encabezados CSV
+            let csvContent = "Numero de Colmena,Temperatura (C),Humedad (%),Peso (g),Fecha y Hora\n";
+
+            // Filas de datos
+            records.forEach(r => {
+                const row = [
+                    r.hive,
+                    r.temp,
+                    r.hum,
+                    r.weight,
+                    r.timestamp.replace(',', '') 
+                ].join(",");
+                csvContent += row + "\n";
+            });
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            
+            const dateStr = new Date().toISOString().split('T')[0];
+            link.setAttribute("href", url);
+            link.setAttribute("download", `ApisData_Registros_${dateStr}.csv`);
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+</body>
+</html>
