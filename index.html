@@ -530,11 +530,12 @@
             // Limpieza básica
             const cleanText = text.toLowerCase();
 
-            // Expresiones Regulares
+            // Expresiones Regulares Actualizadas
             
-            // Colmena: Busca "colmena" seguido opcionalmente de "numero" y luego el dígito
-            // Permite: "Colmena 5", "Colmena numero 5", "Colmena #5"
-            const hiveRegex = /colmena\s*(?:n[úu]mero\s*|#\s*)?(\d+)/i;
+            // Colmena: MEJORADA
+            // Acepta: "Colmena 5", "Colmena #5", "Colmena: 5", "Colmena, 5", "Colmena numero 5"
+            // Se añaden separadores como dos puntos, comas, guiones o espacios
+            const hiveRegex = /colmena\s*(?:n[úu]mero\s*|#\s*)?[\s:.,-]*(\d+)/i;
 
             // Temperatura: Busca número seguido de "grados", "°", "celsius", "centígrados"
             const tempRegex = /(\d+[.,]?\d*)\s*(?:grados|°|degrees|celsius|cent[ií]grados)/i;
