@@ -472,10 +472,7 @@
     </main>
 
     <footer>
-        <!-- Logo Oficial SENA (Recreación SVG para single-file) -->
-        <!-- Logo Oficial SENA SVG Optimizado -->
         <img src="sena.png" alt="SENA logo" class="sena-logo" style="display:block; margin:0 auto; width:clamp(36px,8vw,120px); height:auto;">
-        
         <div class="footer-text">
             <strong>SENA</strong><br>
             Tecnoparque Rural<br>
@@ -535,8 +532,9 @@
 
             // Expresiones Regulares
             
-            // Colmena: Busca "colmena" seguido de un número
-            const hiveRegex = /colmena\s*(\d+)/i;
+            // Colmena: Busca "colmena" seguido opcionalmente de "numero" y luego el dígito
+            // Permite: "Colmena 5", "Colmena numero 5", "Colmena #5"
+            const hiveRegex = /colmena\s*(?:n[úu]mero\s*|#\s*)?(\d+)/i;
 
             // Temperatura: Busca número seguido de "grados", "°", "celsius", "centígrados"
             const tempRegex = /(\d+[.,]?\d*)\s*(?:grados|°|degrees|celsius|cent[ií]grados)/i;
