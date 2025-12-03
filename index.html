@@ -385,7 +385,7 @@
             <textarea 
                 id="transcriptionInput" 
                 class="transcription-area" 
-                placeholder="Ej: 'Colmena 5, 16 grados, 56 porciento, 1.6 kilos'..."
+                placeholder="Ej: 'Colmena 5, 16 grados, 56 porciento, 1.25 kilos'..."
                 inputmode="text"
             ></textarea>
             <!-- Botón de acción principal para procesar -->
@@ -500,10 +500,34 @@
         // --- Lógica Principal ---
 
         /**
-         * Función auxiliar para convertir palabras numéricas a dígitos.
-         * Soluciona el problema de "Colmena cinco" -> "Colmena 5"
+         * Función auxiliar para convertir texto hablado a formato numérico limpio
          */
         function normalizeTextNumbers(text) {
+            let normalized = text;
+
+            // 1. Convertir palabra "punto" o "coma" a "."
+            // Esto soluciona "uno punto cinco" -> "uno . cinco"
+            normalized = normalized.replace(/\bpunto\b/gi, '.');
+            normalized = normalized.replace(/\bcoma\b/gi, '.');
+
+            // 2. Mapa de palabras numéricas compuestas y especiales
+            // Esto soluciona "uno punto veintiun" o "uno punto un"
+            const specialNumbersMap = {
+                'veintiun': '21', 'veintiún': '21',
+                'treinta y un': '31', 'treinta y un': '31',
+                'cuarenta y un': '41',
+                'cincuenta y un': '51',
+                'un': '1' // CRITICO: Convierte "uno punto un kilos" a "uno punto 1 kilos"
+            };
+
+            // Reemplazar compuestos primero
+            for (const [word, num] of Object.entries(specialNumbersMap)) {
+                // \b asegura palabra completa
+                const regex = new RegExp(`\\b${word}\\b`, 'gi');
+                normalized = normalized.replace(regex, num);
+            }
+
+            // 3. Mapa de números básicos
             const numbersMap = {
                 'uno': '1', 'una': '1',
                 'dos': '2',
@@ -519,14 +543,16 @@
                 'veinte': '20', 'treinta': '30', 'cuarenta': '40', 'cincuenta': '50'
             };
 
-            let normalized = text;
-            
-            // Reemplazar palabras completas por números
-            // \b asegura que sea palabra completa (no "tres" en "estres")
+            // Reemplazar básicos
             for (const [word, num] of Object.entries(numbersMap)) {
                 const regex = new RegExp(`\\b${word}\\b`, 'gi');
                 normalized = normalized.replace(regex, num);
             }
+
+            // 4. Limpiar espacios alrededor del punto decimal
+            // Transforma "1 . 5" o "1. 2" en "1.5" o "1.2"
+            normalized = normalized.replace(/\s*[\.,]\s*/g, '.');
+
             return normalized;
         }
 
@@ -545,25 +571,24 @@
          * Procesa el texto dictado y extrae valores usando Regex
          */
         function processTranscription(text) {
-            // 1. Limpieza y Normalización (Paso Crítico arreglado)
-            // Primero pasamos a minúsculas, luego convertimos palabras a números
+            // 1. Limpieza y Normalización (Paso Crítico mejorado)
             let cleanText = text.toLowerCase();
+            
+            // Ejecutamos la normalización avanzada de números y decimales
             cleanText = normalizeTextNumbers(cleanText);
 
             // 2. Definición de Regex Robusta
             
-            // Colmena: Busca "colmena", seguido opcionalmente de cualquier cosa que NO sea un número (\D*),
-            // y captura el primer número que encuentre después.
-            // Esto atrapa: "colmena 5", "colmena número 5", "colmena: 5", "colmena, la 5"
+            // Colmena
             const hiveRegex = /colmena\D*(\d+)/i;
 
-            // Temperatura: Número + variantes de grados
+            // Temperatura
             const tempRegex = /(\d+[.,]?\d*)\s*(?:grados|°|degrees|celsius|cent[ií]grados)/i;
             
-            // Humedad: Número + variantes de %
+            // Humedad
             const humRegex = /(\d+[.,]?\d*)\s*(?:%|porciento|por\s*ciento|percent)/i;
             
-            // Peso: Número + variantes de kilos
+            // Peso: Kilos
             const weightRegex = /(\d+[.,]?\d*)\s*(?:kilos|kilo|kilogramos|kg\b|k\b)/i;
 
             const hiveMatch = cleanText.match(hiveRegex);
@@ -574,13 +599,12 @@
             // 3. Asignación de valores
             
             if (hiveMatch) {
-                // ParseInt para asegurar que es un entero limpio (quita ceros a la izq)
                 hiveInput.value = parseInt(hiveMatch[1], 10);
             }
 
-            if (tempMatch) tempInput.value = tempMatch[1].replace(',', '.');
-            if (humMatch) humInput.value = humMatch[1].replace(',', '.');
-            if (weightMatch) weightInput.value = weightMatch[1].replace(',', '.');
+            if (tempMatch) tempInput.value = tempMatch[1]; // Ya normalizamos el punto en el paso 1
+            if (humMatch) humInput.value = humMatch[1];
+            if (weightMatch) weightInput.value = weightMatch[1];
         }
 
         function saveRecord() {
