@@ -506,23 +506,25 @@
             let normalized = text;
 
             // 1. Convertir palabra "punto" o "coma" a "."
-            // Esto soluciona "uno punto cinco" -> "uno . cinco"
             normalized = normalized.replace(/\bpunto\b/gi, '.');
             normalized = normalized.replace(/\bcoma\b/gi, '.');
 
+            // --- REGLA ESPECIAL PARA DECIMALES (Solicitud Usuario) ---
+            // Convierte "uno." "un." "una." en "1." cuando precede a decimales.
+            // Ejemplo: "uno.21" -> "1.21"
+            normalized = normalized.replace(/\b(un|uno|una)\s*([.,])/gi, '1$2');
+
             // 2. Mapa de palabras numéricas compuestas y especiales
-            // Esto soluciona "uno punto veintiun" o "uno punto un"
             const specialNumbersMap = {
-                'veintiun': '21', 'veintiún': '21',
-                'treinta y un': '31', 'treinta y un': '31',
+                'veintiun': '21', 'veintiún': '21', 'veintiuno': '21',
+                'treinta y un': '31', 'treinta y un': '31', 'treinta y uno': '31',
                 'cuarenta y un': '41',
                 'cincuenta y un': '51',
-                'un': '1' // CRITICO: Convierte "uno punto un kilos" a "uno punto 1 kilos"
+                'un': '1' // Convierte "uno punto un kilos" a "uno punto 1 kilos"
             };
 
             // Reemplazar compuestos primero
             for (const [word, num] of Object.entries(specialNumbersMap)) {
-                // \b asegura palabra completa
                 const regex = new RegExp(`\\b${word}\\b`, 'gi');
                 normalized = normalized.replace(regex, num);
             }
@@ -571,7 +573,7 @@
          * Procesa el texto dictado y extrae valores usando Regex
          */
         function processTranscription(text) {
-            // 1. Limpieza y Normalización (Paso Crítico mejorado)
+            // 1. Limpieza y Normalización
             let cleanText = text.toLowerCase();
             
             // Ejecutamos la normalización avanzada de números y decimales
@@ -579,7 +581,7 @@
 
             // 2. Definición de Regex Robusta
             
-            // Colmena
+            // Colmena (acepta "colmena 5", "colmena #5", "colmena: 5", "colmena cinco")
             const hiveRegex = /colmena\D*(\d+)/i;
 
             // Temperatura
