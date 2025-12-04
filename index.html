@@ -505,11 +505,11 @@
         function normalizeTextNumbers(text) {
             let normalized = text;
 
-            // 1. Convertir palabra "punto" o "coma" a "."
-            normalized = normalized.replace(/\bpunto\b/gi, '.');
-            normalized = normalized.replace(/\bcoma\b/gi, '.');
+            // --- REGLA ESPECIAL PARA DECIMALES DICTADOS ---
+            // Convierte "7 coma 2" o "7 punto 2" (dichos explícitamente) a "7.2"
+            normalized = normalized.replace(/(\d+)\s+(?:punto|coma)\s+(\d+)/gi, '$1.$2');
 
-            // --- REGLA ESPECIAL PARA DECIMALES (Solicitud Usuario) ---
+            // --- REGLA "UNO/UN/UNA" ---
             // Convierte "uno." "un." "una." en "1." cuando precede a decimales.
             // Ejemplo: "uno.21" -> "1.21"
             normalized = normalized.replace(/\b(un|uno|una)\s*([.,])/gi, '1$2');
@@ -551,9 +551,17 @@
                 normalized = normalized.replace(regex, num);
             }
 
-            // 4. Limpiar espacios alrededor del punto decimal
-            // Transforma "1 . 5" o "1. 2" en "1.5" o "1.2"
-            normalized = normalized.replace(/\s*[\.,]\s*/g, '.');
+            // 4. LIMPIEZA CRÍTICA DE FORMATO DECIMAL
+            // Evitar unir "Colmena 7, 20 grados" en "7.20"
+            
+            // A. PUNTOS: Si hay un punto físico, siempre une, incluso con espacios.
+            // "1. 2" -> "1.2" | "1 .2" -> "1.2"
+            normalized = normalized.replace(/(\d)\s*\.\s*(\d)/g, '$1.$2');
+
+            // B. COMAS: Solo unir si NO hay espacio después.
+            // "1,2" -> "1.2" (Decimal)
+            // "1, 2" -> "1, 2" (Lista/Separación - SE RESPETA)
+            normalized = normalized.replace(/(\d),(\d)/g, '$1.$2');
 
             return normalized;
         }
@@ -604,7 +612,7 @@
                 hiveInput.value = parseInt(hiveMatch[1], 10);
             }
 
-            if (tempMatch) tempInput.value = tempMatch[1]; // Ya normalizamos el punto en el paso 1
+            if (tempMatch) tempInput.value = tempMatch[1];
             if (humMatch) humInput.value = humMatch[1];
             if (weightMatch) weightInput.value = weightMatch[1];
         }
