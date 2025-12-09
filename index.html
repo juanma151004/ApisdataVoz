@@ -43,7 +43,7 @@
             padding: 1rem 1.5rem;
             display: flex;
             align-items: center;
-            justify-content: center;
+            justify-content: space-between; /* Separar título y botón ayuda */
             gap: 10px;
             box-shadow: var(--shadow);
             position: sticky;
@@ -58,10 +58,31 @@
             display: flex;
             align-items: center;
             gap: 0.5rem;
+            margin: 0;
         }
 
         .bee-icon {
             font-size: 1.8rem;
+        }
+
+        .help-btn {
+            background-color: var(--bg-sec);
+            color: var(--detail);
+            border: 2px solid var(--accent-1);
+            border-radius: 50px;
+            padding: 0.5rem 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.2s;
+        }
+        
+        .help-btn:active {
+            transform: scale(0.95);
+            background-color: var(--accent-1);
         }
 
         /* Main Container */
@@ -118,7 +139,7 @@
             gap: 0.5rem;
         }
 
-        input[type="text"], input[type="number"] {
+        input[type="text"], input[type="number"], textarea {
             width: 100%;
             padding: 0.75rem;
             border: 1px solid var(--accent-1);
@@ -127,7 +148,7 @@
             background: var(--white);
         }
 
-        input:focus {
+        input:focus, textarea:focus {
             outline: none;
             border-color: var(--detail);
         }
@@ -229,6 +250,10 @@
             gap: 0.5rem;
         }
 
+        .card-full {
+            grid-column: 1 / -1; /* Ocupa todo el ancho */
+        }
+
         .card label {
             font-size: 0.85rem;
             color: var(--text-sec);
@@ -311,6 +336,107 @@
             display: block; /* Visible by default */
         }
 
+        /* MODAL STYLES */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            padding: 1rem;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background-color: var(--white);
+            border-radius: var(--radius);
+            width: 100%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            position: relative;
+            transform: translateY(20px);
+            transition: transform 0.3s ease;
+            border: 4px solid var(--accent-1);
+        }
+
+        .modal-overlay.active .modal-content {
+            transform: translateY(0);
+        }
+
+        .modal-header {
+            background-color: var(--bg-sec);
+            padding: 1rem;
+            border-bottom: 2px solid var(--accent-1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            color: var(--detail);
+            margin: 0;
+        }
+
+        .close-modal-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--detail);
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        .help-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .help-item {
+            background-color: #fafafa;
+            border: 1px solid #eee;
+            padding: 1rem;
+            border-radius: 8px;
+        }
+
+        .help-title {
+            color: var(--detail);
+            font-weight: 700;
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .help-example {
+            color: var(--sena-green);
+            font-weight: 600;
+            background-color: #f0fdf4;
+            padding: 4px 8px;
+            border-radius: 4px;
+            display: inline-block;
+            margin-top: 4px;
+        }
+
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(-10px); }
             to { opacity: 1; transform: translateY(0); }
@@ -352,40 +478,68 @@
         @media (max-width: 600px) {
             header h1 { font-size: 1.25rem; }
             .cards-container { grid-template-columns: 1fr; }
-            .card { flex-direction: row; align-items: center; justify-content: space-between; }
-            .card input { text-align: right; width: 50%; }
+            .card { flex-direction: column; align-items: stretch; } 
+            .card input { text-align: left; width: 100%; } 
         }
     </style>
 </head>
 <body>
 
+    <!-- VENTANA MODAL DE AYUDA -->
+    <div id="helpModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>📖 ¿Cómo usar esta App?</h3>
+                <button class="close-modal-btn" onclick="closeModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <p style="margin-bottom: 1rem;">Para que la app entienda, puede hablar de <strong>dos formas</strong>. ¡Use la que más le guste!</p>
+                
+                <ul class="help-list">
+                    <li class="help-item">
+                        <span class="help-title">1. Por Nombre (Más natural)</span>
+                        Diga primero el nombre y luego el número.
+                        <br>
+                        Ejemplo: <span class="help-example">"Colmena 5, Temperatura 20, Humedad 60, Peso 4"</span>
+                    </li>
+                    <li class="help-item">
+                        <span class="help-title">2. Por Unidad (Más técnico)</span>
+                        Diga primero el número y luego la unidad.
+                        <br>
+                        Ejemplo: <span class="help-example">"20 grados, 60 porciento, 4 kilos"</span>
+                    </li>
+                    <li class="help-item">
+                        <span class="help-title">📝 La Bitácora</span>
+                        Para guardar notas, diga la palabra mágica <strong>"Bitácora"</strong> y luego hable lo que quiera.
+                        <br>
+                        Ejemplo: <span class="help-example">"...Bitácora la reina tiene buena postura"</span>
+                    </li>
+                </ul>
+                <button class="btn btn-primary" style="margin-top: 1.5rem;" onclick="closeModal()">¡Entendido!</button>
+            </div>
+        </div>
+    </div>
+
     <header>
         <h1><span class="bee-icon">🐝</span> ApisData</h1>
+        <button class="help-btn" onclick="openModal()">❓ Ayuda</button>
     </header>
 
     <main>
         
         <!-- Sección de Errores -->
         <div id="errorAlert" class="alert alert-error">
-            ⚠️ No se detectaron todos los datos. Verifique haber usado las palabras clave correctas.
+            ⚠️ No se entendió bien. Toque el botón "Ayuda" arriba para ver ejemplos.
         </div>
 
         <!-- Sección de Transcripción -->
         <section>
             <h2 class="section-title">1. Dictado de Voz</h2>
-            <div class="alert alert-info">
-                <strong>💡 Pautas de dictado:</strong>
-                <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
-                    <li>Colmena: "<strong>Colmena</strong>" + Número</li>
-                    <li>Temp: Número + "<strong>grados</strong>"</li>
-                    <li>Humedad: Número + "<strong>porciento</strong>"</li>
-                    <li>Peso: Número + "<strong>kilos</strong>"</li>
-                </ul>
-            </div>
+            
             <textarea 
                 id="transcriptionInput" 
                 class="transcription-area" 
-                placeholder="Ej: 'Colmena 5, 16 grados, 56 porciento, 1.25 kilos'..."
+                placeholder="Toque aquí, abra el micrófono y diga: 'Colmena 1, Temperatura 20, Humedad 60, Peso 10... Bitácora todo bien'"
                 inputmode="text"
             ></textarea>
             <!-- Botón de acción principal para procesar -->
@@ -434,6 +588,15 @@
                     </div>
                     <input type="number" id="weightInput" placeholder="0" step="0.1">
                 </div>
+
+                <!-- Tarjeta Bitácora -->
+                <div class="card card-full">
+                    <div>
+                        <label>Bitácora / Novedades</label>
+                        <div class="unit">Texto</div>
+                    </div>
+                    <input type="text" id="notesInput" placeholder="Ej: Reina vista, falta alimento..." >
+                </div>
             </div>
 
             <button class="btn btn-primary" onclick="saveRecord()">
@@ -452,6 +615,7 @@
                             <th>Temp (°C)</th>
                             <th>Hum (%)</th>
                             <th>Peso (kg)</th>
+                            <th>Bitácora</th>
                             <th>Hora</th>
                         </tr>
                     </thead>
@@ -490,12 +654,30 @@
         const humInput = document.getElementById('humInput');
         const weightInput = document.getElementById('weightInput');
         const hiveInput = document.getElementById('hiveInput');
+        const notesInput = document.getElementById('notesInput');
         const tableBody = document.querySelector('#dataTable tbody');
         const emptyState = document.getElementById('emptyState');
         const errorAlert = document.getElementById('errorAlert');
+        const modal = document.getElementById('helpModal');
 
         // Inicialización:
         hiveInput.value = "1";
+
+        // --- Lógica del Modal ---
+        function openModal() {
+            modal.classList.add('active');
+        }
+
+        function closeModal() {
+            modal.classList.remove('active');
+        }
+
+        // Cerrar al hacer clic fuera del contenido
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) {
+                closeModal();
+            }
+        });
 
         // --- Lógica Principal ---
 
@@ -506,61 +688,39 @@
             let normalized = text;
 
             // --- REGLA ESPECIAL PARA DECIMALES DICTADOS ---
-            // Convierte "7 coma 2" o "7 punto 2" (dichos explícitamente) a "7.2"
             normalized = normalized.replace(/(\d+)\s+(?:punto|coma)\s+(\d+)/gi, '$1.$2');
 
             // --- REGLA "UNO/UN/UNA" ---
-            // Convierte "uno." "un." "una." en "1." cuando precede a decimales.
-            // Ejemplo: "uno.21" -> "1.21"
             normalized = normalized.replace(/\b(un|uno|una)\s*([.,])/gi, '1$2');
 
-            // 2. Mapa de palabras numéricas compuestas y especiales
+            // Mapas de números...
             const specialNumbersMap = {
                 'veintiun': '21', 'veintiún': '21', 'veintiuno': '21',
                 'treinta y un': '31', 'treinta y un': '31', 'treinta y uno': '31',
                 'cuarenta y un': '41',
                 'cincuenta y un': '51',
-                'un': '1' // Convierte "uno punto un kilos" a "uno punto 1 kilos"
+                'un': '1'
             };
 
-            // Reemplazar compuestos primero
             for (const [word, num] of Object.entries(specialNumbersMap)) {
                 const regex = new RegExp(`\\b${word}\\b`, 'gi');
                 normalized = normalized.replace(regex, num);
             }
 
-            // 3. Mapa de números básicos
             const numbersMap = {
-                'uno': '1', 'una': '1',
-                'dos': '2',
-                'tres': '3',
-                'cuatro': '4',
-                'cinco': '5',
-                'seis': '6',
-                'siete': '7',
-                'ocho': '8',
-                'nueve': '9',
-                'diez': '10',
-                'once': '11', 'doce': '12', 'trece': '13', 'catorce': '14', 'quince': '15',
-                'veinte': '20', 'treinta': '30', 'cuarenta': '40', 'cincuenta': '50'
+                'uno': '1', 'una': '1', 'dos': '2', 'tres': '3', 'cuatro': '4',
+                'cinco': '5', 'seis': '6', 'siete': '7', 'ocho': '8', 'nueve': '9',
+                'diez': '10', 'once': '11', 'doce': '12', 'trece': '13', 'catorce': '14',
+                'quince': '15', 'veinte': '20', 'treinta': '30', 'cuarenta': '40', 'cincuenta': '50'
             };
 
-            // Reemplazar básicos
             for (const [word, num] of Object.entries(numbersMap)) {
                 const regex = new RegExp(`\\b${word}\\b`, 'gi');
                 normalized = normalized.replace(regex, num);
             }
 
-            // 4. LIMPIEZA CRÍTICA DE FORMATO DECIMAL
-            // Evitar unir "Colmena 7, 20 grados" en "7.20"
-            
-            // A. PUNTOS: Si hay un punto físico, siempre une, incluso con espacios.
-            // "1. 2" -> "1.2" | "1 .2" -> "1.2"
+            // LIMPIEZA DE DECIMALES
             normalized = normalized.replace(/(\d)\s*\.\s*(\d)/g, '$1.$2');
-
-            // B. COMAS: Solo unir si NO hay espacio después.
-            // "1,2" -> "1.2" (Decimal)
-            // "1, 2" -> "1, 2" (Lista/Separación - SE RESPETA)
             normalized = normalized.replace(/(\d),(\d)/g, '$1.$2');
 
             return normalized;
@@ -578,43 +738,62 @@
         }
 
         /**
-         * Procesa el texto dictado y extrae valores usando Regex
+         * Procesa el texto dictado y extrae valores usando Regex INTELIGENTE (Nombre O Unidad)
          */
         function processTranscription(text) {
-            // 1. Limpieza y Normalización
             let cleanText = text.toLowerCase();
-            
-            // Ejecutamos la normalización avanzada de números y decimales
             cleanText = normalizeTextNumbers(cleanText);
 
-            // 2. Definición de Regex Robusta
-            
-            // Colmena (acepta "colmena 5", "colmena #5", "colmena: 5", "colmena cinco")
-            const hiveRegex = /colmena\D*(\d+)/i;
+            // 1. Separar Bitácora
+            const noteSplit = cleanText.split(/bit[áa]cora/i);
+            let metricsPart = noteSplit[0]; 
+            let notesPart = "";             
 
-            // Temperatura
-            const tempRegex = /(\d+[.,]?\d*)\s*(?:grados|°|degrees|celsius|cent[ií]grados)/i;
-            
-            // Humedad
-            const humRegex = /(\d+[.,]?\d*)\s*(?:%|porciento|por\s*ciento|percent)/i;
-            
-            // Peso: Kilos
-            const weightRegex = /(\d+[.,]?\d*)\s*(?:kilos|kilo|kilogramos|kg\b|k\b)/i;
-
-            const hiveMatch = cleanText.match(hiveRegex);
-            const tempMatch = cleanText.match(tempRegex);
-            const humMatch = cleanText.match(humRegex);
-            const weightMatch = cleanText.match(weightRegex);
-
-            // 3. Asignación de valores
-            
-            if (hiveMatch) {
-                hiveInput.value = parseInt(hiveMatch[1], 10);
+            if (noteSplit.length > 1) {
+                notesPart = noteSplit.slice(1).join("bitácora").trim();
+                if(notesPart.length > 0) {
+                    notesPart = notesPart.charAt(0).toUpperCase() + notesPart.slice(1);
+                }
             }
 
-            if (tempMatch) tempInput.value = tempMatch[1];
-            if (humMatch) humInput.value = humMatch[1];
-            if (weightMatch) weightInput.value = weightMatch[1];
+            // 2. Extracción Híbrida (Doble chequeo)
+
+            // --- COLMENA ---
+            // "Colmena 5" o "Colmena número 5"
+            const hiveMatch = metricsPart.match(/colmena\D*(\d+)/i);
+            if (hiveMatch) hiveInput.value = parseInt(hiveMatch[1], 10);
+
+            // --- TEMPERATURA ---
+            // Opción A: "Temperatura (de) 20"
+            const tempByName = metricsPart.match(/temp(?:eratura)?\s*(?:de)?\s*(\d+[.,]?\d*)/i);
+            // Opción B: "20 grados/celsius"
+            const tempByUnit = metricsPart.match(/(\d+[.,]?\d*)\s*(?:grados|°|degrees|celsius)/i);
+            
+            if (tempByName) tempInput.value = tempByName[1];
+            else if (tempByUnit) tempInput.value = tempByUnit[1];
+
+            // --- HUMEDAD ---
+            // Opción A: "Humedad (de) 60"
+            const humByName = metricsPart.match(/humedad\s*(?:de)?\s*(\d+[.,]?\d*)/i);
+            // Opción B: "60 porciento/%"
+            const humByUnit = metricsPart.match(/(\d+[.,]?\d*)\s*(?:%|porciento|por\s*ciento)/i);
+
+            if (humByName) humInput.value = humByName[1];
+            else if (humByUnit) humInput.value = humByUnit[1];
+
+            // --- PESO ---
+            // Opción A: "Peso (de) 5"
+            const weightByName = metricsPart.match(/peso\s*(?:de)?\s*(\d+[.,]?\d*)/i);
+            // Opción B: "5 kilos/kg"
+            const weightByUnit = metricsPart.match(/(\d+[.,]?\d*)\s*(?:kilos|kilo|kilogramos|kg\b|k\b)/i);
+
+            if (weightByName) weightInput.value = weightByName[1];
+            else if (weightByUnit) weightInput.value = weightByUnit[1];
+
+            // --- BITÁCORA ---
+            if (notesPart) {
+                notesInput.value = notesPart;
+            }
         }
 
         function saveRecord() {
@@ -624,8 +803,9 @@
             const temp = tempInput.value;
             const hum = humInput.value;
             const weight = weightInput.value;
+            const notes = notesInput.value.trim();
 
-            if (!temp && !hum && !weight) {
+            if (!temp && !hum && !weight && !notes) {
                 showError();
                 return;
             }
@@ -640,7 +820,8 @@
                 hive: "Colmena " + hiveNum,
                 temp: temp || '-',
                 hum: hum || '-',
-                weight: weight || '-', 
+                weight: weight || '-',
+                notes: notes || '-', 
                 timestamp: new Date().toLocaleString('es-CO')
             };
 
@@ -649,7 +830,6 @@
             renderTable();
             clearDataInputs(); 
             
-            // Autoincremento
             const nextHiveNumber = parseInt(hiveNum) + 1;
             if (!isNaN(nextHiveNumber)) {
                 hiveInput.value = nextHiveNumber;
@@ -680,6 +860,7 @@
                     <td>${record.temp}</td>
                     <td>${record.hum}</td>
                     <td>${record.weight}</td>
+                    <td style="font-style: italic; color: var(--text-sec); max-width: 200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${record.notes}</td>
                     <td style="color: var(--text-sec); font-size: 0.8rem;">${record.timestamp}</td>
                 `;
                 tableBody.appendChild(row);
@@ -690,23 +871,25 @@
             tempInput.value = '';
             humInput.value = '';
             weightInput.value = '';
+            notesInput.value = '';
         }
 
         function downloadCSV() {
-            // Validación: Permitir descarga con al menos 1 registro
             if (records.length === 0) {
                 alert("No hay datos para descargar (Mínimo 1 registro requerido).");
                 return;
             }
 
-            let csvContent = "Numero de Colmena,Temperatura (C),Humedad (%),Peso (kg),Fecha y Hora\n";
+            let csvContent = "Numero de Colmena,Temperatura (C),Humedad (%),Peso (kg),Bitacora,Fecha y Hora\n";
 
             records.forEach(r => {
+                const cleanNotes = r.notes.replace(/"/g, "'");
                 const row = [
                     r.hive,
                     r.temp,
                     r.hum,
                     r.weight,
+                    `"${cleanNotes}"`,
                     r.timestamp.replace(',', '') 
                 ].join(",");
                 csvContent += row + "\n";
